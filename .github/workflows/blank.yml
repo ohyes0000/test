@@ -1,0 +1,32 @@
+name: Validate ZIP Contents
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find ZIP Files
+        run: |
+          zip_file=$(find . -type f -name "*.zip")
+          if [ -z "$zip_file" ]; then
+            echo "No ZIP file found!"
+            exit 1
+          fi
+          echo "ZIP file found: $zip_file"
+
+      - name: Extract ZIP and Check Files
+        run: |
+          unzip -o "*.zip" -d extracted/
+          cd extracted
+          if ! ls | grep -E '^[a-zA-Z0-9_-]+\.(ogg|csv|txt)$'; then
+            echo "Invalid files detected inside ZIP!"
+            exit 1
+          fi
+          echo "ZIP contents are valid."
